@@ -1,7 +1,8 @@
 const INCOMPLETE_BOOKSHELF_LIST = "incompleteBookshelfList";
 const COMPLETE_BOOKSHELF_LIST = "completeBookshelfList";
+const BOOK_ITEMID = "itemId";
 
-function makeBookList(title, author, year, isCompleted) {
+function makeBookList(title, author, year, isComplete) {
   const textBookTitle = document.createElement("h3");
   textBookTitle.innerText = title;
 
@@ -14,7 +15,7 @@ function makeBookList(title, author, year, isCompleted) {
   const classAction = document.createElement("div");
   classAction.classList.add("action");
 
-  if (isCompleted) {
+  if (isComplete) {
     classAction.append(unfinishedCheckButton(), deleteCheckButton());
   } else {
     classAction.append(finishedCheckButton(), deleteCheckButton());
@@ -35,15 +36,24 @@ function addBook() {
   const bookTitle = document.getElementById("inputBookTitle").value;
   const bookAuthor = document.getElementById("inputBookAuthor").value;
   const bookYear = document.getElementById("inputBookYear").value;
-  const isCompleted = document.getElementById("inputBookIsComplete").checked;
+  const isComplete = document.getElementById("inputBookIsComplete").checked;
 
-  if (!isCompleted) {
+
+  if (!isComplete) {
     const book = makeBookList(bookTitle, bookAuthor, bookYear);
+    const bookObject = composeBookObject(bookTitle, bookAuthor, bookYear, false);
+    book[BOOK_ITEMID] = bookObject.id;
+    books.push(bookObject);
     incompleteBookshelfList.append(book);
   } else {
     const newBook = makeBookList(bookTitle, bookAuthor, bookYear, true);
+    const bookObject = composeBookObject(bookTitle, bookAuthor, bookYear, false);
+    newBook[BOOK_ITEMID] = bookObject.id;
+    books.push(bookObject);
     completeBookshelfList.append(newBook);
   }
+
+  updateDataToStorage();
 }
 
 function finishedReadingButton(green, eventListener) {
@@ -84,15 +94,21 @@ function deleteBookButton(red, eventListener) {
 
 
 function addBookToCompleted(bookElement) {
+  const completeBookshelfList = document.getElementById(COMPLETE_BOOKSHELF_LIST);
   const addBookTitle = bookElement.querySelector("h3").innerText;
   const addBookAuthor = bookElement.querySelector("span#author").innerText;
   const addBookYear = bookElement.querySelector("span#year").innerText;
 
   const newBook = makeBookList(addBookTitle, addBookAuthor, addBookYear, true);
-  const completeBookshelfList = document.getElementById(COMPLETE_BOOKSHELF_LIST);
+  const book = findBook(bookElement[BOOK_ITEMID]);
+  book.isComplete = true;
+  newBook[BOOK_ITEMID] = book.id;
+
   completeBookshelfList.append(newBook);
 
   bookElement.remove();
+
+  updateDataToStorage();
 }
 
 function finishedCheckButton() {
@@ -109,12 +125,17 @@ function unfinishedCheckButton() {
 
 function deleteCheckButton() {
   return deleteBookButton("red", function (event) {
+    alert("Data buku akan dihapus!")
     removeBookFromCompleted(event.target.parentElement.parentElement);
   });
 }
 
 function removeBookFromCompleted(bookElement) {
+  const bookPosition = findBookIndex(bookElement[BOOK_ITEMID]);
+  books.splice(bookPosition, 1);
+
   bookElement.remove();
+  updateDataToStorage();
 }
 
 function undoBookFromCompleted(bookElement) {
@@ -126,6 +147,67 @@ function undoBookFromCompleted(bookElement) {
 
   const newBook = makeBookList(addBookTitle, addBookAuthor, addBookYear, false);
 
+  const book = findBook(bookElement[BOOK_ITEMID]);
+  book.isComplete = false;
+  newBook[BOOK_ITEMID] = book.id;
+
   incompleteBookshelfList.append(newBook);
   bookElement.remove();
+
+  updateDataToStorage();
 }
+
+function refreshDataFromBooks() {
+  const incompleteBookshelfList = document.getElementById(INCOMPLETE_BOOKSHELF_LIST);
+  let completeBookshelfList = document.getElementById(COMPLETE_BOOKSHELF_LIST);
+
+  for (book of books) {
+    const newBook = makeBookList(book.title, book.author, book.year, book.isComplete);
+    newBook[BOOK_ITEMID] = book.id;
+
+    if (book.isComplete) {
+      completeBookshelfList.append(newBook);
+    } else {
+      incompleteBookshelfList.append(newBook);
+    }
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const searchBook = document.getElementById("searchBook");
+
+  searchBook.addEventListener("submit", function (event) {
+    event.preventDefault();
+    
+    var valueSearch, title, book_item, i;
+
+    valueSearch = document.getElementById("searchBookTitle").value.toUpperCase();
+    book_item = document.getElementsByClassName("book_item");
+
+    for (i = 0; i < book_item.length; i++) {
+      title = book_item[i].getElementsByTagName("h3");
+      if (title[0].innerHTML.toUpperCase().indexOf(valueSearch) > -1) {
+        book_item[i].style.display = "";
+      } else {
+        book_item[i].style.display = "none";
+      }
+    }
+  });
+});
+
+
+
+
+// function filter() {
+  
+//   var searchBookTitle, filterValue, bookItem, title, i;
+
+//   var searchBookTitle = document.getElementById("searchBookTitle");
+//   var filterValue = searchBookTitle.value.toUpperCase();
+
+//   const incompleteBookshelfList = document.getElementById(INCOMPLETE_BOOKSHELF_LIST);
+//   let completeBookshelfList = document.getElementById(COMPLETE_BOOKSHELF_LIST);
+
+//   var bookItem = incompleteBookshelfList.getElementsByClassName("book_item") || completeBookshelfList.getElementsByClassName("book_item");
+
+// }
