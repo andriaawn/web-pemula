@@ -194,20 +194,3 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
-
-
-
-
-// function filter() {
-  
-//   var searchBookTitle, filterValue, bookItem, title, i;
-
-//   var searchBookTitle = document.getElementById("searchBookTitle");
-//   var filterValue = searchBookTitle.value.toUpperCase();
-
-//   const incompleteBookshelfList = document.getElementById(INCOMPLETE_BOOKSHELF_LIST);
-//   let completeBookshelfList = document.getElementById(COMPLETE_BOOKSHELF_LIST);
-
-//   var bookItem = incompleteBookshelfList.getElementsByClassName("book_item") || completeBookshelfList.getElementsByClassName("book_item");
-
-// }
